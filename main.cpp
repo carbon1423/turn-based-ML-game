@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
-#define WIN_HEIGHT 600
-#define WIN_LENGTH 900
+
+//2:3 height to length ratio
+#define WIN_HEIGHT 300 
+#define WIN_LENGTH 450
 
 enum GameState {
     MAIN_MENU,
@@ -15,6 +17,9 @@ bool isInside(int x, int y, SDL_Rect rect) {
            y >= rect.y && y <= rect.y + rect.h;
 }
 
+SDL_Rect fightButton;
+SDL_Rect itemButton;
+SDL_Rect backButton;
 
 
 int main() {
@@ -29,7 +34,7 @@ int main() {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    GameState current_state = MAIN_MENU;
+    GameState current_state = FIGHT_MENU;
     bool running = true;
     SDL_Event e;
     while (running) {
@@ -38,8 +43,12 @@ int main() {
             if (e.type == SDL_MOUSEBUTTONDOWN){
                 int mouseX = e.button.x;
                 int mouseY = e.button.y;
-                if(mouseX >= WIN_LENGTH/9 && mouseX <= 4*WIN_LENGTH/9 && mouseY >= (3*WIN_HEIGHT)/4 + WIN_HEIGHT/24 && mouseY <= (3*WIN_HEIGHT)/4 + (5*WIN_HEIGHT/24) && current_state == MAIN_MENU){
+                if(isInside(mouseX, mouseY, fightButton) && current_state == MAIN_MENU){
                     current_state = FIGHT_MENU;
+                }else if(isInside(mouseX, mouseY, itemButton) && current_state == MAIN_MENU){
+                    current_state = ITEM_MENU;
+                }else if(isInside(mouseX,mouseY, backButton) && (current_state == FIGHT_MENU || current_state == ITEM_MENU)){
+                    current_state = MAIN_MENU;
                 }
             }
         }
@@ -55,12 +64,16 @@ int main() {
         if(current_state == MAIN_MENU){
             // Create the fight button and the item button (red and green for now)
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red for fight button
-            SDL_Rect fightButton = {WIN_LENGTH/9, (3*WIN_HEIGHT)/4 + WIN_HEIGHT/24, WIN_LENGTH/3, WIN_HEIGHT/6};
+            fightButton = {WIN_LENGTH/9, (3*WIN_HEIGHT)/4 + WIN_HEIGHT/24, WIN_LENGTH/3, WIN_HEIGHT/6};
             SDL_RenderFillRect(renderer, &fightButton);
 
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green for item button
-            SDL_Rect itemButton = {5*WIN_LENGTH/9, (3*WIN_HEIGHT)/4 + WIN_HEIGHT/24, WIN_LENGTH/3, WIN_HEIGHT/6};
+            itemButton = {5*WIN_LENGTH/9, (3*WIN_HEIGHT)/4 + WIN_HEIGHT/24, WIN_LENGTH/3, WIN_HEIGHT/6};
             SDL_RenderFillRect(renderer, &itemButton);
+        }else if(current_state == FIGHT_MENU || current_state == ITEM_MENU){
+            SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+            backButton = {WIN_LENGTH/18, (3*WIN_HEIGHT)/4 + (2*WIN_HEIGHT)/24, WIN_LENGTH/9, (2*WIN_HEIGHT)/24};
+            SDL_RenderFillRect(renderer, &backButton);
         }
         SDL_RenderPresent(renderer);
     }
